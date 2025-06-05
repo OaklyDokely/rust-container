@@ -6,6 +6,8 @@ cd /home/container || exit 1
 export FRAMEWORK="{{FRAMEWORK}}"
 export FRAMEWORK_UPDATE="{{FRAMEWORK_UPDATE}}"
 
+echo "Version 1"
+
 echo "================= ENV DUMP START ================="
 env | sort
 echo "================= ENV DUMP END ==================="
