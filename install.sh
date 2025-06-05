@@ -1,15 +1,41 @@
 #!/bin/bash
 
-cd /mnt/server
+cd /home/container || exit 1
 
-if [[ "$FRAMEWORK" == carbon* && "$FRAMEWORK_UPDATE" == 1 ]]; then
-    echo "Installing Carbon framework..."
-    curl -sSL https://downloads.carbonmod.gg/Carbon/latest/download -o carbon.zip
-    unzip carbon.zip -d carbon && rm carbon.zip
-elif [[ "$FRAMEWORK" == oxide* && "$FRAMEWORK_UPDATE" == 1 ]]; then
+echo "================= ENV DUMP START ================="
+env | sort
+echo "================= ENV DUMP END ==================="
+
+echo "Installing base Rust server files..."
+mkdir -p ./steamcmd
+curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz -C ./steamcmd
+./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 validate +quit
+
+# Normalize framework casing
+FRAMEWORK_LOWER=$(echo "${FRAMEWORK}" | tr '[:upper:]' '[:lower:]')
+echo "Detected FRAMEWORK: '${FRAMEWORK}' → Normalized: '${FRAMEWORK_LOWER}'"
+echo "FRAMEWORK_UPDATE: '${FRAMEWORK_UPDATE}'"
+
+# Logic for modding framework install
+if [[ "$FRAMEWORK_LOWER" == carbon* && "$FRAMEWORK_UPDATE" == "1" ]]; then
+    echo "Installing Carbon..."
+    echo "Removing Oxide-related files..."
+    rm -f Oxide.* Compiler.x86_x64
+    rm -f RustDedicated_Data/Managed/Oxide.*
+    curl -sSL "https://github.com/CarbonCommunity/Carbon/releases/download/production_build/Carbon.Linux.Release.tar.gz" | tar -xz
+
+elif [[ "$FRAMEWORK_LOWER" == oxide* && "$FRAMEWORK_UPDATE" == "1" ]]; then
     echo "Installing Oxide/uMod..."
-    curl -sSL https://umod.org/games/rust/download/develop -o oxide.zip
-    unzip oxide.zip && rm oxide.zip
+    echo "Removing Carbon-related files..."
+    rm -rf carbon
+    rm -f RustDedicated_Data/Managed/Carbon.*
+
+    curl -sSL "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip" -o umod.zip
+    unzip -o -q umod.zip -d /home/container && rm umod.zip
+    curl -sSL "https://assets.umod.org/compiler/Compiler.x86_x64" -o Compiler.x86_x64
+    chmod +x Compiler.x86_x64
+
 else
-    echo "No framework installation requested."
+    echo "⚠️ No framework installation triggered (vanilla, unknown, or disabled)."
+    echo "Detected FRAMEWORK_LOWER='${FRAMEWORK_LOWER}' with FRAMEWORK_UPDATE='${FRAMEWORK_UPDATE}'"
 fi
