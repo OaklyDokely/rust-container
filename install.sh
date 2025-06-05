@@ -2,6 +2,10 @@
 
 cd /home/container || exit 1
 
+# Manually export panel-provided variables
+export FRAMEWORK="{{FRAMEWORK}}"
+export FRAMEWORK_UPDATE="{{FRAMEWORK_UPDATE}}"
+
 echo "================= ENV DUMP START ================="
 env | sort
 echo "================= ENV DUMP END ==================="
@@ -11,12 +15,10 @@ mkdir -p ./steamcmd
 curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz -C ./steamcmd
 ./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 validate +quit
 
-# Normalize framework casing
 FRAMEWORK_LOWER=$(echo "${FRAMEWORK}" | tr '[:upper:]' '[:lower:]')
 echo "Detected FRAMEWORK: '${FRAMEWORK}' → Normalized: '${FRAMEWORK_LOWER}'"
 echo "FRAMEWORK_UPDATE: '${FRAMEWORK_UPDATE}'"
 
-# Logic for modding framework install
 if [[ "$FRAMEWORK_LOWER" == carbon* && "$FRAMEWORK_UPDATE" == "1" ]]; then
     echo "Installing Carbon..."
     echo "Removing Oxide-related files..."
@@ -34,7 +36,6 @@ elif [[ "$FRAMEWORK_LOWER" == oxide* && "$FRAMEWORK_UPDATE" == "1" ]]; then
     unzip -o -q umod.zip -d /home/container && rm umod.zip
     curl -sSL "https://assets.umod.org/compiler/Compiler.x86_x64" -o Compiler.x86_x64
     chmod +x Compiler.x86_x64
-
 else
     echo "⚠️ No framework installation triggered (vanilla, unknown, or disabled)."
     echo "Detected FRAMEWORK_LOWER='${FRAMEWORK_LOWER}' with FRAMEWORK_UPDATE='${FRAMEWORK_UPDATE}'"
