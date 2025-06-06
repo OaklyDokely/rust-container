@@ -52,15 +52,8 @@ if [[ "${FRAMEWORK}" == "oxide" && "${FRAMEWORK_UPDATE}" == "1" ]]; then
     echo "
 ==========================================
             Oxide Framework
-==========================================
+=========================================="
 
-  [1/3] No Carbon installation detected
-  [2/3] Downloading Oxide/uMod...
-  [3/3] Installing Oxide/uMod...
-  [✓] Oxide installation completed successfully
-
-"
-    
     if ls RustDedicated_Data/Managed 2>/dev/null | grep -qi "Carbon"; then
         echo "  [1/3] Removing Carbon integration files..."
         # Remove Carbon integration files but preserve the carbon folder
@@ -96,6 +89,8 @@ if [[ "${FRAMEWORK}" == "oxide" && "${FRAMEWORK_UPDATE}" == "1" ]]; then
         echo "  [✗] Oxide installation failed"
         exit 1
     fi
+
+    echo ""
 
 elif [[ "${FRAMEWORK}" == "carbon" && "${FRAMEWORK_UPDATE}" == "1" ]]; then
     echo "
