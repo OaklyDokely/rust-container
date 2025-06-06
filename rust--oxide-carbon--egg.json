@@ -293,7 +293,7 @@
         },
         {
             "name": "Framework Update",
-            "description": "Disable installation \/ update of any chosen framework.",
+            "description": "Enable automatic framework updates on server start. When enabled (1), the framework will be updated to the latest version. When disabled (0), the existing framework installation will be used without updates.",
             "env_variable": "FRAMEWORK_UPDATE",
             "default_value": "1",
             "user_viewable": true,
