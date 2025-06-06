@@ -2,43 +2,55 @@
 
 cd /home/container || exit 1
 
-# Manually export panel-provided variables
-export FRAMEWORK="{{FRAMEWORK}}"
-export FRAMEWORK_UPDATE="{{FRAMEWORK_UPDATE}}"
+echo "
+==========================================
+         Rust Server Installation
+==========================================
 
-echo "Version 1.0.1"
+  [1/2] Setting up SteamCMD...
+"
 
-echo "================= ENV DUMP START ================="
-env | sort
-echo "================= ENV DUMP END ==================="
-
-echo "Installing base Rust server files..."
-mkdir -p ./steamcmd
-curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz -C ./steamcmd
-./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 validate +quit
-
-FRAMEWORK_LOWER=$(echo "${FRAMEWORK}" | tr '[:upper:]' '[:lower:]')
-echo "Detected FRAMEWORK: '${FRAMEWORK}' → Normalized: '${FRAMEWORK_LOWER}'"
-echo "FRAMEWORK_UPDATE: '${FRAMEWORK_UPDATE}'"
-
-if [[ "$FRAMEWORK_LOWER" == carbon* && "$FRAMEWORK_UPDATE" == "1" ]]; then
-    echo "Installing Carbon..."
-    echo "Removing Oxide-related files..."
-    rm -f Oxide.* Compiler.x86_x64
-    rm -f RustDedicated_Data/Managed/Oxide.*
-    curl -sSL "https://github.com/CarbonCommunity/Carbon/releases/download/production_build/Carbon.Linux.Release.tar.gz" | tar -xz
-
-elif [[ "$FRAMEWORK_LOWER" == oxide* && "$FRAMEWORK_UPDATE" == "1" ]]; then
-    echo "Installing Oxide/uMod..."
-    echo "Removing Carbon-related files..."
-    rm -rf carbon
-    rm -f RustDedicated_Data/Managed/Carbon.*
-
-    curl -sSL "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip" -o umod.zip
-    unzip -o -q umod.zip -d /home/container && rm umod.zip
-    curl -sSL "https://assets.umod.org/compiler/Compiler.x86_x64" -o Compiler.x86_x64
-    chmod +x Compiler.x86_x64
-else
-    echo "⚠️ No framework installation triggered (vanilla, unknown, or disabled)."
-    echo "Detected FRAMEWORK_LOWER='${FRAMEWORK_LOWER}' with FRAMEWORK_UPDATE='${FRAMEWORK_UPDATE}'"
+# Create steamcmd directory and download SteamCMD
+if ! mkdir -p ./steamcmd; then
+    echo "  [✗] Failed to create steamcmd directory"
+    exit 1
 fi
+
+if ! curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz -C ./steamcmd; then
+    echo "  [✗] Failed to download or extract SteamCMD"
+    exit 1
+fi
+
+echo "  [✓] SteamCMD installed successfully
+
+  [2/2] Downloading Rust server files...
+"
+
+# Install Rust server files
+if ! ./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 validate +quit; then
+    echo "  [✗] Failed to install Rust server files"
+    exit 1
+fi
+
+echo "  [✓] Rust server files installed successfully
+
+  [3/3] Verifying installation...
+"
+
+# Verify critical files exist
+if [ ! -f "RustDedicated" ]; then
+    echo "  [✗] RustDedicated executable not found"
+    exit 1
+fi
+
+if [ ! -d "RustDedicated_Data" ]; then
+    echo "  [✗] RustDedicated_Data directory not found"
+    exit 1
+fi
+
+echo "
+==========================================
+  [✓] Rust server installation complete
+==========================================
+"
+
